@@ -233,11 +233,11 @@ class Depth2ImgPipeline(DiffusionPipeline):
                                        guidance_scale,
                                        height, width)
 
-        img = self.decode_img_latents(latents)
+        depth2img = self.decode_img_latents(latents)
 
-        img = self.transform_img(img)
-
-        return img
+        depth2img = self.transform_img(img)
+        print("123")
+        return depth2img
 
 """## Create instance of the model"""
 
@@ -302,6 +302,7 @@ depth2img = Depth2ImgPipeline(vae,
 img = r"E:\codified\gen_ai\House_image_genAI\app\assests\input_img\master1 (1).png"
 im = Image.open(img)
 # im.show()
+print("45")
 
 prompt = "colourfull plantation on windows"
 
