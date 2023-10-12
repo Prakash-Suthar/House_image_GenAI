@@ -20,7 +20,7 @@ pipe = StableDiffusionDepth2ImgPipeline.from_pretrained(
 ).to("cpu")
 
 prompt = "a house with colorfull lightning"
-pipe(prompt=prompt, image=im, negative_prompt=None, strength=0.7).images[0]
+t = pipe(prompt=prompt, image=im, negative_prompt=None, strength=0.7).images[0]
 
-
+t.show()
 
