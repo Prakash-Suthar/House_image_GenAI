@@ -20,7 +20,8 @@ device = 'cpu'
 # Load autoencoder
 vae = AutoencoderKL.from_pretrained('stabilityai/stable-diffusion-2-depth', subfolder='vae').to(device)
 # Load tokenizer and the text encoder
-tokenizer = AutoTokenizer.from_pretrained('stabilityai/stable-diffusion-2-depth', subfolder='tokenizer')
+# tokenizer = AutoTokenizer.from_pretrained('stabilityai/stable-diffusion-2-depth')
+tokenizer = AutoTokenizer.from_pretrained('stabilityai/stable-diffusion-2-depth', subfolder='./tokenizer')
 
 # tokenizer = CLIPTokenizerFast.from_pretrained('stabilityai/stable-diffusion-2-depth', subfolder='tokenizer')
 print("tokenssssssss",tokenizer)
@@ -51,7 +52,8 @@ print("d2img==>",depth2img)
 # depth2img.show()
 
 # img = "./assests/input_img/master1 (1).png"
-img = r"E:\codified\gen_ai\House_image_genAI\app\assests\input_img\master1 (1).png"
+img = r"C:\Users\praka\Downloads\d22.jpg"
+
 # im = Image.open(img)
 # # im.show()
 
@@ -72,5 +74,6 @@ result_image = depth2img(prompt, im_array)[0]
 
 # Display or save the result image
 result_image = Image.fromarray((result_image * 255).astype('uint8'))
+
 result_image.show()
 
