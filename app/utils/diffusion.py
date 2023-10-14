@@ -11,6 +11,23 @@ from transformers import DPTForDepthEstimation, DPTFeatureExtractor
 from diffusers import AutoencoderKL, UNet2DConditionModel
 from diffusers.schedulers.scheduling_pndm import PNDMScheduler
 
+# device = 'cpu'
+# # Load autoencoder
+# vae = AutoencoderKL.from_pretrained('stabilityai/stable-diffusion-2-depth', subfolder='vae').to(device)
+
+# Load tokenizer and the text encoder
+tokenizer = CLIPTokenizer.from_pretrained('stabilityai/stable-diffusion-2-depth', subfolder='tokenizer')
+# text_encoder = CLIPTextModel.from_pretrained('stabilityai/stable-diffusion-2-depth', subfolder='text_encoder').to(device)
+
+# # Load UNet model
+# unet = UNet2DConditionModel.from_pretrained('stabilityai/stable-diffusion-2-depth', subfolder='unet').to(device)
+
+# # Load scheduler
+# scheduler = PNDMScheduler(beta_start=0.00085, 
+#                           beta_end=0.012, 
+#                           beta_schedule='scaled_linear', 
+#                           num_train_timesteps=1000)
+
 class DiffusionPipeline:
     
     def __init__(self,

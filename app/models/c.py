@@ -1,14 +1,21 @@
+# Import necessary libraries
 import numpy as np
-import torch
-from PIL import Image
 from tqdm import tqdm
+from PIL import Image
+
+import torch
 from torch import autocast
-from transformers import CLIPTokenizer, CLIPTextModel, DPTForDepthEstimation, DPTImageProcessor
+
+from transformers import CLIPTextModel, CLIPTokenizer
+from transformers import DPTForDepthEstimation, DPTFeatureExtractor, DPTImageProcessor 
+
 from diffusers import AutoencoderKL, UNet2DConditionModel
 from diffusers.schedulers.scheduling_pndm import PNDMScheduler
 
+# Model definition
+
 class DiffusionPipeline:
-    
+
     def __init__(self,
                  vae,
                  tokenizer,
@@ -28,12 +35,13 @@ class DiffusionPipeline:
         # tokenize the text
         text_input = self.tokenizer(text,
                                     padding='max_length',
-                                    max_length=tokenizer.model_max_length,
+                                    max_length=self.tokenizer.model_max_length,
                                     truncation=True,
                                     return_tensors='pt')
         # embed the text
         with torch.no_grad():
             text_embeds = self.text_encoder(text_input.input_ids.to(self.device))[0]
+        print("text embeds =>", text_embeds)
         return text_embeds
 
 
@@ -45,10 +53,9 @@ class DiffusionPipeline:
         # get unconditional prompt embeddings
         uncond_embeds = self.get_text_embeds([''] * len(prompt))
         # concatenate the above 2 embeds
-        prompt_embeds = torch.cat([uncond_embeds, cond_embeds])
+        prompt_embeds = torch.cat([uncond_embeds, cond_embeds], dim=0)
+        print("text prompt_embeds =>", prompt_embeds)
         return prompt_embeds
-
-
 
     def decode_img_latents(self, img_latents):
         img_latents = 1 / self.vae.config.scaling_factor * img_latents
@@ -57,17 +64,20 @@ class DiffusionPipeline:
 
         img = (img / 2 + 0.5).clamp(0, 1)
         img = img.cpu().permute(0, 2, 3, 1).float().numpy()
+        img = Image.fromarray((img * 255).astype('uint8'))
+        print("image11 =>", img)
+        img.show()
         return img
-
-
 
     def transform_img(self, img):
         # scale images to the range [0, 255] and convert to int
         img = (img * 255).round().astype('uint8')
         # convert to PIL Image objects
         img = [Image.fromarray(i) for i in img]
-        return img
 
+        print("image22 =>", img)
+        img.show()
+        return img
 
     def encode_img_latents(self, img, latent_timestep):
         if not isinstance(img, list):
@@ -89,10 +99,9 @@ class DiffusionPipeline:
         # add noise to the latents
         noise = torch.randn(img_latents.shape).to(self.device)
         img_latents = self.scheduler.add_noise(img_latents, noise, latent_timestep)
-        print("wert")
-        return img_latents
 
-    # Add methods for getting text and prompt embeddings, decoding, etc.
+        print("img_latents =>", img_latents)
+        return img_latents
 
 class Depth2ImgPipeline(DiffusionPipeline):
     def __init__(self,
@@ -109,7 +118,6 @@ class Depth2ImgPipeline(DiffusionPipeline):
         self.depth_feature_extractor = depth_feature_extractor
         self.depth_estimator = depth_estimator
 
-
     def get_depth_mask(self, img):
         if not isinstance(img, list):
             img = [img]
@@ -125,7 +133,7 @@ class Depth2ImgPipeline(DiffusionPipeline):
 
         # get the depth mask
         depth_mask = torch.nn.functional.interpolate(depth_mask.unsqueeze(1),
-                                                     size=(height//8, width//8),
+                                                     size=(height // 8, width // 8),
                                                      mode='bicubic',
                                                      align_corners=False)
 
@@ -137,10 +145,9 @@ class Depth2ImgPipeline(DiffusionPipeline):
 
         # replicate the mask for classifier free guidance
         depth_mask = torch.cat([depth_mask] * 2)
+
+        print("depth_mask =>", depth_mask)
         return depth_mask
-
-
-
 
     def denoise_latents(self,
                         img,
@@ -160,7 +167,7 @@ class Depth2ImgPipeline(DiffusionPipeline):
         init_timestep = int(num_inference_steps * strength)
         t_start = num_inference_steps - init_timestep
 
-        timesteps = self.scheduler.timesteps[t_start: ]
+        timesteps = self.scheduler.timesteps[t_start:]
         num_inference_steps = num_inference_steps - t_start
 
         latent_timestep = timesteps[:1].repeat(1)
@@ -188,7 +195,6 @@ class Depth2ImgPipeline(DiffusionPipeline):
 
         return latents
 
-
     def __call__(self,
                  prompt,
                  img,
@@ -197,11 +203,8 @@ class Depth2ImgPipeline(DiffusionPipeline):
                  guidance_scale=7.5,
                  height=512, width=512):
 
-
         prompt_embeds = self.get_prompt_embeds(prompt)
-
         depth_mask = self.get_depth_mask(img)
-
         latents = self.denoise_latents(img,
                                        prompt_embeds,
                                        depth_mask,
@@ -210,46 +213,58 @@ class Depth2ImgPipeline(DiffusionPipeline):
                                        guidance_scale,
                                        height, width)
 
-        img = self.decode_img_latents(latents)
+        depth2img = self.decode_img_latents(latents)
+        # depth2img = self.transform_img(depth2img)
+        depth2img.show()
+        print("depth2img =>", depth2img)
+        return depth2img
 
-        img = self.transform_img(img)
-
-        return img
-
-
-    # Add methods for getting depth mask, denoising latents, transforming images, etc.
+# Create an instance of the model
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+# Load autoencoder
 vae = AutoencoderKL.from_pretrained('stabilityai/stable-diffusion-2-depth', subfolder='vae').to(device)
+
+# Load tokenizer and the text encoder
 tokenizer = CLIPTokenizer.from_pretrained('stabilityai/stable-diffusion-2-depth', subfolder='tokenizer')
 text_encoder = CLIPTextModel.from_pretrained('stabilityai/stable-diffusion-2-depth', subfolder='text_encoder').to(device)
+
+# Load UNet model
 unet = UNet2DConditionModel.from_pretrained('stabilityai/stable-diffusion-2-depth', subfolder='unet').to(device)
-scheduler = PNDMScheduler(beta_start=0.00085, beta_end=0.012, beta_schedule='scaled_linear', num_train_timesteps=1000)
+
+# Load scheduler
+scheduler = PNDMScheduler(beta_start=0.00085,
+                          beta_end=0.012,
+                          beta_schedule='scaled_linear',
+                          num_train_timesteps=1000)
+
+# Load DPT Depth Estimator
 depth_estimator = DPTForDepthEstimation.from_pretrained('stabilityai/stable-diffusion-2-depth', subfolder='depth_estimator')
+
+# Load DPT Feature Extractor
 depth_feature_extractor = DPTImageProcessor.from_pretrained('stabilityai/stable-diffusion-2-depth', subfolder='feature_extractor')
 
-# Modify this line to specify the channel format
-# If you're using channels_last format:
-depth_feature_extractor = depth_feature_extractor.with_target_format("NHWC")
+# Create an instance of the Depth2ImgPipeline
+d2img = Depth2ImgPipeline(vae,
+                          tokenizer,
+                          text_encoder,
+                          unet,
+                          scheduler,
+                          depth_feature_extractor,
+                          depth_estimator)
 
-# Create Depth2ImgPipeline instance
-d2img = Depth2ImgPipeline(vae, tokenizer, text_encoder, unet, scheduler, depth_feature_extractor, depth_estimator)
+# Define the path to the image you want to process
+img_path = r"C:\Users\praka\Downloads\d22.jpg"# Replace with the path to your image
 
-# Load and process image
-img_path = r'E:\codified\gen_ai\House_image_genAI\app\assests\input_img\alex_demo.png'
-img = Image.open(img_path)
+# Open the image
+image = Image.open(img_path)
 
-# Ensure the image is in the correct format (NHWC)
-img = img.convert("RGB")  # Convert to RGB format if not already
+# Define the text prompt
+prompt = "colorful lightning on windows"
 
-# Create Depth2ImgPipeline instance
-d2img = Depth2ImgPipeline(vae, tokenizer, text_encoder, unet, scheduler, depth_feature_extractor, depth_estimator)
+# Call the depth2image pipeline
+output_image = d2img(prompt, image, strength=0.8, num_inference_steps=50, guidance_scale=7.5, height=512, width=512)
 
-# Define prompt
-prompt = "colorful plantation on windows"
-
-# Transform image based on prompt
-result_image = d2img(prompt, img)
-
-# Display or save the result image
-result_image.show()
+# Display the resulting image
+output_image[0].show()

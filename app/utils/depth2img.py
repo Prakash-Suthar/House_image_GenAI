@@ -2,6 +2,7 @@ import os
 import numpy as np
 from tqdm import tqdm
 from PIL import Image
+import matplotlib.pyplot as plt
 
 import torch
 from torch import autocast
@@ -13,6 +14,9 @@ from diffusers import AutoencoderKL, UNet2DConditionModel
 from diffusers.schedulers.scheduling_pndm import PNDMScheduler
 
 from diffusion import DiffusionPipeline
+
+# Load tokenizer and the text encoder
+tokenizer = CLIPTokenizer.from_pretrained('stabilityai/stable-diffusion-2-depth', subfolder='tokenizer')
 
 class Depth2ImgPipeline(DiffusionPipeline):
     def __init__(self,
@@ -33,12 +37,14 @@ class Depth2ImgPipeline(DiffusionPipeline):
     def get_depth_mask(self, img):
         if not isinstance(img, list):
             img = [img]
-
+            print("img=----d2img===>",img)
         width, height = img[0].size
-
+        print("w,h---->",width,height)
+        # plt.imshow(img)
+        # plt.show()
         # pre-process the input image and get its pixel values
         pixel_values = self.depth_feature_extractor(img, return_tensors="pt").pixel_values
-
+        print("pixel_values=>",pixel_values)
         # use autocast for automatic mixed precision (AMP) inference
         with autocast('cpu'):
             depth_mask = self.depth_estimator(pixel_values).predicted_depth
@@ -57,10 +63,9 @@ class Depth2ImgPipeline(DiffusionPipeline):
 
         # replicate the mask for classifier free guidance
         depth_mask = torch.cat([depth_mask] * 2)
+        
+        print("depth mask--->",depth_mask)
         return depth_mask
-
-
-
 
     def denoise_latents(self,
                         img,
@@ -86,7 +91,7 @@ class Depth2ImgPipeline(DiffusionPipeline):
         latent_timestep = timesteps[:1].repeat(1)
 
         latents = self.encode_img_latents(img, latent_timestep)
-
+        print("latents values==>",latents)
         # use autocast for automatic mixed precision (AMP) inference
         with autocast('cpu'):
             for i, t in tqdm(enumerate(timesteps)):
@@ -105,7 +110,7 @@ class Depth2ImgPipeline(DiffusionPipeline):
 
                 # remove the noise from the current sample i.e. go from x_t to x_{t-1}
                 latents = self.scheduler.step(noise_pred, t, latents)['prev_sample']
-
+        print("latents values 1234-----==>",latents)
         return latents
 
 
@@ -133,5 +138,8 @@ class Depth2ImgPipeline(DiffusionPipeline):
         img = self.decode_img_latents(latents)
 
         img = self.transform_img(img)
-
+        print("return image in d2img=>",img)
         return img
+
+
+

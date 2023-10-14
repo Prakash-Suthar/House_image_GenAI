@@ -9,13 +9,7 @@ Original file is located at
 # Part 1
 
 Note: Before running the code, make sure you upload [the images](https://github.com/x4nth055/pythoncode-tutorials/tree/master/machine-learning/depth2image-stable-diffusion) you want to edit to Colab.
-"""
-
-# Commented out IPython magic to ensure Python compatibility.
-# %pip install --quiet --upgrade diffusers transformers scipy ftfy
-
-# Commented out IPython magic to ensure Python compatibility.
-# %pip install --quiet --upgrade accelerate
+"""                                                                                 
 
 import numpy as np
 from tqdm import tqdm
@@ -201,7 +195,7 @@ class Depth2ImgPipeline(DiffusionPipeline):
         latent_timestep = timesteps[:1].repeat(1)
 
         latents = self.encode_img_latents(img, latent_timestep)
-
+        print("latents00===>",latents)
         # use autocast for automatic mixed precision (AMP) inference
         with autocast('cpu'):
             for i, t in tqdm(enumerate(timesteps)):
@@ -220,7 +214,7 @@ class Depth2ImgPipeline(DiffusionPipeline):
 
                 # remove the noise from the current sample i.e. go from x_t to x_{t-1}
                 latents = self.scheduler.step(noise_pred, t, latents)['prev_sample']
-                print("latents=>",latents)
+        print("latents=>",latents)
         
         return latents
 
@@ -250,8 +244,8 @@ class Depth2ImgPipeline(DiffusionPipeline):
 
         depth2img = self.transform_img(img)
         
-        depth2img.show()
-        print("123")
+        # depth2img.show()
+        print("depth2img=>",depth2img)
         return depth2img
 
 """## Create instance of the model"""
@@ -288,131 +282,14 @@ d2img = Depth2ImgPipeline(vae,
                               depth_feature_extractor,
                               depth_estimator)
 
-"""## Examples"""
 
-# import urllib.parse as parse
-# import os
-# import requests
-
-# # a function to determine whether a string is a URL or not
-# def is_url(string):
-#     try:
-#         result = parse.urlparse(string)
-#         return all([result.scheme, result.netloc, result.path])
-#     except:
-#         return False
-
-
-# # a function to load an image
-# def load_image(image_path):
-#     if is_url(image_path):
-#         return Image.open(requests.get(image_path, stream=True).raw)
-#     elif os.path.exists(image_path):
-#         return Image.open(image_path)
-
-
-# url = "http://images.cocodataset.org/val2017/000000039769.jpg"
-# img = load_image(url)
-# img
-img = r"E:\codified\gen_ai\House_image_genAI\app\assests\input_img\master1 (1).png"
+img = r"C:\Users\praka\Downloads\d22.jpg"
 im = Image.open(img)
 # im.show()
-print("45")
-
-prompt = "colourfull plantation on windows"
-
-d2img(prompt, im)[0]
 
 
+prompt = "colourfull lightning on windows"
 
-
-# img = load_image("image16.png")
-# img
-
-# prompt = "A boulder with gemstones falling down a hill"
-# depth2img(prompt, img)[0]
-
-# img = load_image("image11.png").resize((512, 512))
-# img
-
-# import gc
-# import torch
-
-# # Run this cell if you get OOM - Out of Memory - errors
-# torch.cuda.empty_cache()
-# gc.collect()
-# torch.cuda.empty_cache()
-# gc.collect()
-
-# # just to check GPU memory
-# !nvidia-smi
-
-# prompt = "A futuristic city on the edge of space, a robotic bionic singularity portal, sci fi, utopian, tim hildebrandt, wayne barlowe, bruce pennington, donato giancola, larry elmore"
-# depth2img(prompt, img)[0]
-
-# """# Part 2"""
-
-# import torch
-# import requests
-# from PIL import Image
-# from diffusers import StableDiffusionDepth2ImgPipeline
-
-# pipe = StableDiffusionDepth2ImgPipeline.from_pretrained(
-#     "stabilityai/stable-diffusion-2-depth",
-#     torch_dtype=torch.float16,
-# ).to("cuda")
-
-# """## Impact of negative prompt example"""
-
-# img = load_image("https://images.pexels.com/photos/406152/pexels-photo-406152.jpeg?auto=compress&cs=tinysrgb&w=600")
-# img
-
-# prompt = "A salad with tomatoes and guanas chips mixed with ketchup and mustard and bay leaf and guacamole and onions and ketchup and luscious patty with sesame seeds and cashews and onions and ketchup, ethereal,"
-# pipe(prompt=prompt, image=img, negative_prompt=None, strength=0.7).images[0]
-
-# prompt = "A salad with tomatoes and guanas chips mixed with ketchup and mustard and bay leaf and guacamole and onions and ketchup and luscious patty with sesame seeds and cashews and onions and ketchup, ethereal,"
-# n_prompt = "ugly, deformed, not detailed, bad architectures, blurred, too much blurred, motion blur"
-# pipe(prompt=prompt, image=img, negative_prompt=n_prompt, strength=0.7).images[0]
-
-# img = load_image("image15.png")
-# img
-
-# prompt = "Last remaining old man on earth"
-# n_prompt = "bad anatomy, ugly, wrinkles"
-# pipe(prompt=prompt, image=img, negative_prompt=n_prompt, strength=0.7).images[0]
-
-# """## Changing strength - Futuristic city example"""
-
-# img = load_image("image11.png")
-# img
-
-# prompt = "A futuristic city"
-# pipe(prompt=prompt, image=img, negative_prompt=None, strength=0.7).images[0]
-
-# prompt = "Futuristic city, modern, highly detailed, aesthetic, octane render, 8K, UHD, photoshopped"
-# n_prompt = "ugly, deformed, not detailed, bad architectures, blurred, too much blurred, motion blur"
-# pipe(prompt=prompt, image=img, negative_prompt=n_prompt, strength=0.7).images[0]
-
-# pipe(prompt=prompt, image=img, negative_prompt=n_prompt, strength=0.1).images[0]
-
-# pipe(prompt=prompt, image=img, negative_prompt=n_prompt, strength=0.5).images[0]
-
-# pipe(prompt=prompt, image=img, negative_prompt=n_prompt, strength=0.9).images[0]
-
-# pipe(prompt=prompt, image=img, negative_prompt=n_prompt, strength=1).images[0]
-
-# """## Article beginning examples"""
-
-# img = load_image("image12.png")
-# img
-
-# prompt = "World war, aesthetic"
-# n_prompt = "bad looking, deformed, wholesome"
-# pipe(prompt=prompt, image=img, negative_prompt=n_prompt, strength=0.9).images[0]
-
-# img = load_image("image3.png")
-
-# prompt = "Beautiful anime landscape"
-# n_prompt = "bad, deformed, ugly"
-# pipe(prompt=prompt, image=img, negative_prompt=n_prompt, strength=0.7).images[0]
+t = d2img(prompt, im)[0]
+t.show()
 

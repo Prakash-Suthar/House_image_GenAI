@@ -21,7 +21,7 @@ device = 'cpu'
 vae = AutoencoderKL.from_pretrained('stabilityai/stable-diffusion-2-depth', subfolder='vae').to(device)
 # Load tokenizer and the text encoder
 # tokenizer = AutoTokenizer.from_pretrained('stabilityai/stable-diffusion-2-depth')
-tokenizer = AutoTokenizer.from_pretrained('stabilityai/stable-diffusion-2-depth', subfolder='./tokenizer')
+tokenizer = AutoTokenizer.from_pretrained('stabilityai/stable-diffusion-2-depth', subfolder='tokenizer')
 
 # tokenizer = CLIPTokenizerFast.from_pretrained('stabilityai/stable-diffusion-2-depth', subfolder='tokenizer')
 print("tokenssssssss",tokenizer)
@@ -63,17 +63,24 @@ img = r"C:\Users\praka\Downloads\d22.jpg"
 
 # result.show()
 im = Image.open(img)
-im = im.convert("RGB")  # Convert to RGB format if necessary
-im_array = np.array(im).transpose(2, 0, 1)  # Ensure the NHWC format
+# num_channels = im.getbands()
+# print("bands 123--->",num_channels)
+# # im = im.convert("RGB")  # Convert to RGB format if necessary
+
+
+
+# im_array = np.array(im).transpose(2, 0, 1)  # Ensure the NHWC format
+
+
 
 # Define the prompt
-prompt = "colorful plantation on windows"
+prompt = "colorful light plantation on windows"
 
 # Process the image with the Depth2ImgPipeline
-result_image = depth2img(prompt, im_array)[0]
+result_image = depth2img(prompt, im)[0]
 
 # Display or save the result image
 result_image = Image.fromarray((result_image * 255).astype('uint8'))
-
+print("----------------",result_image)
 result_image.show()
 
