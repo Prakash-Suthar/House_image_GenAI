@@ -192,7 +192,8 @@ class Depth2ImgPipeline(DiffusionPipeline):
 
                 # remove the noise from the current sample i.e. go from x_t to x_{t-1}
                 latents = self.scheduler.step(noise_pred, t, latents)['prev_sample']
-
+        print("latents---->",latents)
+        
         return latents
 
     def __call__(self,

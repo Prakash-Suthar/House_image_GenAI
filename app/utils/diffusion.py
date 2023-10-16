@@ -78,6 +78,7 @@ class DiffusionPipeline:
 
         img = (img / 2 + 0.5).clamp(0, 1)
         img = img.cpu().permute(0, 2, 3, 1).float().numpy()
+        print("image----------->",img)
         return img
 
 
@@ -87,6 +88,7 @@ class DiffusionPipeline:
         img = (img * 255).round().astype('uint8')
         # convert to PIL Image objects
         img = [Image.fromarray(i) for i in img]
+        print("image------123----->",img)
         return img
 
 
