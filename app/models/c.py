@@ -30,10 +30,10 @@ import torch
 import PIL 
 import gradio as gr
 from diffusers import StableDiffusionInpaintPipeline
+from transformers import PreTrainedModel
 
 
-
-device = "cpu"
+device = "cuda"
 model_path = "runwayml/stable-diffusion-inpainting"
 
 pipe = StableDiffusionInpaintPipeline.from_pretrained(
@@ -75,7 +75,7 @@ prompt = "a mecha robot sitting on a bench"
 
 guidance_scale=7.5
 num_samples = 3
-generator = torch.Generator(device="cpu").manual_seed(0) # change the seed to get different results
+generator = torch.Generator(device="cuda").manual_seed(0) # change the seed to get different results
 
 images = pipe(
     prompt=prompt,
