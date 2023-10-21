@@ -8,12 +8,15 @@ import gradio as gr
 from diffusers import StableDiffusionInpaintPipeline
 from transformers import PreTrainedModel
 
-device = "cpu"
+device = "cuda:0"
+print(device)
+
+
 model_path = "runwayml/stable-diffusion-inpainting"
 
 pipe = StableDiffusionInpaintPipeline.from_pretrained(
     model_path,
-    torch_dtype=torch.float32,
+    torch_dtype=torch.float16,
 ).to(device)
 
 import requests
