@@ -16,6 +16,7 @@ model_path = "runwayml/stable-diffusion-inpainting"
 
 pipe = StableDiffusionInpaintPipeline.from_pretrained(
     model_path,
+    variant="fp16",
     torch_dtype=torch.float16,
 ).to(device)
 
