@@ -27,13 +27,38 @@
 
 import cv2
 import matplotlib.pyplot as plt
+from PIL import Image, ImageDraw
+import numpy as np
 
 # Specify the paths to your damaged image and mask (in PNG or JPG format)
-damaged_image_path = r"C:\Users\praka\Downloads\dog.png"
-mask_path = r"C:\Users\praka\Downloads\dog_mask.png"
+damaged_image_path = r"C:\Users\praka\Downloads\d23.jpeg"
 
-# Read the damaged image and mask
+def generate_binary_mask(mask_points):
+    image_width = 950
+    image_height = 550
+    # Create a black and white image with a black background
+    shape = Image.new('L', (image_width, image_height), 0)
+
+    # Create a white mask in the image
+    draw = ImageDraw.Draw(shape)
+    draw.polygon(mask_points, outline=255, fill=255)
+
+    # Convert the grayscale image to a binary mask
+    mask = np.array(shape)
+    mask_pth = r"E:\codified\gen_ai\House_image_genAI\app\models\mask_img.png" 
+    cv2.imwrite(mask_pth, mask)
+    
+    return mask_pth
+
+mask_points = [626, 209, 626, 257, 658, 257, 658, 209]
+
+# Read the damaged image
 damaged_image = cv2.imread(damaged_image_path)
+damaged_image = cv2.resize(damaged_image, (950,550))
+
+mask_path = generate_binary_mask(mask_points)
+
+# Read the binary mask
 mask = cv2.imread(mask_path, 0)
 
 # Convert the image to RGB format (if not already)

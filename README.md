@@ -6,6 +6,7 @@
 
 # CUDA-torch instalation 
 # pip install torch==1.7.1+cu110 -f https://download.pytorch.org/whl/torch_stable.html
+pip install torch==2.1.0+cu118 -f https://download.pytorch.org/whl/torch_stable.html
 
 ## listing all the installations  pip list
 
@@ -20,3 +21,7 @@ pip install torch-directml
 
 # AMD
 pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/rocm5.2
+
+# torch-cudda
+pip install torch==2.0+cu117 -f https://download.pytorch.org/whl/torch_stable.html
+https://pytorch.org/get-started/locally/
