@@ -5,7 +5,7 @@ from diffusers import StableDiffusionInpaintPipeline
 from PIL import Image, ImageDraw
 from segment_anything import SamPredictor, sam_model_registry
 
-device = "cuda"
+device = "cuda:0"
 # sam_checkpoint = r"C:\Users\praka\Downloads\sam_vit_h_4b8939.pth"
 # model_type = "vit_h"
 # sam = sam_model_registry [model_type](checkpoint= sam_checkpoint)
