@@ -6,11 +6,7 @@ from PIL import Image, ImageDraw
 from segment_anything import SamPredictor, sam_model_registry
 
 device = "cuda:0"
-# sam_checkpoint = r"C:\Users\praka\Downloads\sam_vit_h_4b8939.pth"
-# model_type = "vit_h"
-# sam = sam_model_registry [model_type](checkpoint= sam_checkpoint)
-# sam.to(device)
-# predictor = SamPredictor(sam)
+
 selected_pixel = []
 
 pipe = StableDiffusionInpaintPipeline.from_pretrained(
@@ -74,34 +70,3 @@ with gr.Blocks() as demo:
 if __name__ == "__main__":
     demo.launch()
 
-
-# import cv2
-# import matplotlib.pyplot as plt
-# from PIL import Image, ImageDraw
-# import numpy as np
-
-
-
-# def generate_binary_mask(image_width, image_height, mask_points):
-#     # Create a black and white image with a black background
-#     shape = Image.new('L', (image_width, image_height), 0)
-
-#     # Create a white mask in the image
-#     draw = ImageDraw.Draw(shape)
-#     draw.polygon(mask_points, outline=255, fill=255)
-
-#     # Convert the grayscale image to a binary mask
-#     binary_mask = np.array(shape)
-
-#     return binary_mask
-
-# # Example usage
-# image_width = 950  # Replace with your image width
-# image_height = 550  # Replace with your image height
-# mask_points = [162, 327, 161, 328, 159, 328, 158, 329, 151, 329, 150, 330, 130, 330, 129, 331, 77, 331, 76, 332, 71, 332, 71, 423, 275, 423, 276, 422, 276, 420, 277, 419, 277, 415, 278, 414, 278, 406, 279, 405, 279, 403, 280, 402, 280, 400, 281, 399, 281, 398, 282, 397, 282, 395, 283, 394, 283, 335, 282, 334, 282, 333, 278, 329, 277, 329, 276, 328, 272, 328, 271, 327]  # Replace with your mask points
-
-# single_segment_mask = generate_binary_mask(image_width, image_height, mask_points)
-
-# plt.imshow(single_segment_mask)
-# plt.axis('off')
-# plt.show()
