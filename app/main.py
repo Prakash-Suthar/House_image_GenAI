@@ -1,51 +1,51 @@
-# import os
-# from PIL import Image
-
-# # from utils.instance import model_use
-
-# img = r"E:\codified\gen_ai\House_image_genAI\app\assests\input_img\master1 (1).png"
-# im = Image.open(img)
-# # im.show()
-
-# # model_use("two tigers", img)[0]
-
-# import torch
-# import requests
-# from PIL import Image
-# from diffusers import StableDiffusionDepth2ImgPipeline
-
-# pipe = StableDiffusionDepth2ImgPipeline.from_pretrained(
-#     "stabilityai/stable-diffusion-2-depth",
-#     torch_dtype=torch.float16,
-# ).to("cpu")
-
-# prompt = "a house with colorfull lightning"
-# t = pipe(prompt=prompt, image=im, negative_prompt=None, strength=0.7).images[0]
-
-# t.show()
-
-
-
-import os
-from PIL import Image
+import io
 import torch
-from diffusers import StableDiffusionDepth2ImgPipeline
+import numpy as np
+from PIL import Image
+from fastapi import FastAPI, File, UploadFile, Form
+from pydantic import BaseModel
+from diffusers import StableDiffusionInpaintPipeline
 
-# Load the image
-img_path = r"E:\codified\gen_ai\House_image_genAI\app\assests\input_img\master1 (1).png"
-im = Image.open(img_path)
+app = FastAPI()
 
-# Create the StableDiffusionDepth2ImgPipeline with float32 precision
-pipe = StableDiffusionDepth2ImgPipeline.from_pretrained(
-    "stabilityai/stable-diffusion-2-depth",
-    torch_dtype=torch.float32,  # Set the data type to float32
-).to("cpu")
+device = "cuda:0"
+pipe = StableDiffusionInpaintPipeline.from_pretrained(
+    "stabilityai/stable-diffusion-2-inpainting",
+    torch_dtype=torch.float16,
+)
+pipe = pipe.to(device)
 
-# Define your prompt
-prompt = "a house with colorful lighting"
 
-# Generate the image with the specified prompt
-generated_image = pipe(prompt=prompt, image=im, negative_prompt=None, strength=0.7).images[0]
+class InpaintRequest(BaseModel):
+    mask_points: str
+    prompt: str
 
-# Display the generated image
-generated_image.show()
+
+def generate_binary_mask(mask_points, image_width=1023, image_height=592):
+    mask_coords = [float(coord) for coord in mask_points.split(",")]
+    shape = Image.new('L', (image_width, image_height), 0)
+    draw = ImageDraw.Draw(shape)
+    draw.polygon(mask_coords, outline=255, fill=255)
+    mask = np.array(shape)
+    return mask
+
+
+def inpaint(image: Image.Image, mask_points: str, prompt: str):
+    image = image.resize((512, 512))
+    mask_image = generate_binary_mask(mask_points)
+    mask_image = Image.fromarray(mask_image)
+    mask_image = mask_image.resize((512, 512))
+    output = pipe(prompt=prompt, image=image, mask_image=mask_image).images[0]
+    return Image.fromarray(output)
+
+
+@app.post("/inpaint")
+async def inpaint_route(
+    image: UploadFile = File(...),
+    mask_points: str = Form(...),
+    prompt: str = Form(...),
+):
+    contents = await image.read()
+    image = Image.open(io.BytesIO(contents)).convert("RGB")
+    result = inpaint(image, mask_points, prompt)
+    return {"result": result}
