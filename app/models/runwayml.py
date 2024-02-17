@@ -5,7 +5,31 @@ from diffusers import StableDiffusionInpaintPipeline
 from PIL import Image, ImageDraw
 # from segment_anything import SamPredictor, sam_model_registry
 import gradio as gr
-device = "cuda"
+
+# import tensorflow as tf
+# gpus = tf.config.list_physical_devices('GPU')
+# if gpus:
+#   # Restrict TensorFlow to only use the first GPU
+#   try:
+#     tf.config.set_visible_devices(gpus[0], 'GPU')
+#     logical_gpus = tf.config.list_logical_devices('GPU')
+#     print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
+#   except RuntimeError as e:
+#     # Visible devices must be set before GPUs have been initialized
+#     print(e)
+
+# exit()
+if torch.cuda.is_available():
+    # Move tensor to GPU
+    device = torch.device("cuda:0")
+    tensor_on_gpu = torch.tensor([1, 2, 3], device=device)
+    print("Tensor on GPU:", tensor_on_gpu)
+else:
+    print("GPU not available.")
+    
+exit()
+device = "cuda:0"
+print("device--->",device)
 
 pipe = StableDiffusionInpaintPipeline.from_pretrained(
     "runwayml/stable-diffusion-inpainting",
@@ -29,7 +53,7 @@ with gr.Blocks() as demo:
 
     def generate_binary_mask(mask_points):
         # Convert the comma-separated string of coordinates to a list of integers
-        mask_coords = [int(coord) for coord in mask_points.split(",")]
+        mask_coords = [float(coord) for coord in mask_points.split(",")]
         image_width = 950
         image_height = 550
 
